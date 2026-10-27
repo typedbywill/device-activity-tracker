@@ -1,10 +1,10 @@
 # Backend Dockerfile
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 # Install git and build dependencies
-RUN apk add --no-cache git python3 make g++
+RUN apk add --no-cache git
 
 # Copy package files
 COPY package*.json ./
@@ -24,7 +24,7 @@ ARG PORT=3001
 ENV PORT=${PORT}
 EXPOSE ${PORT}
 
-# Create directory for WhatsApp auth state
-RUN mkdir -p /app/baileys_auth_info
+# Create directory for WhatsApp auth state and SQLite data
+RUN mkdir -p /app/baileys_auth_info /app/data
 
 CMD ["node", "dist/server.js"]

@@ -104,13 +104,23 @@ export class WhatsAppTracker {
     private probeTimeouts: Map<string, NodeJS.Timeout> = new Map();
     private lastPresence: string | null = null;
     private probeMethod: ProbeMethod = 'delete'; // Default to delete method
+    private probeInterval: number = 5000; // Configurable interval (default 5s)
     public onUpdate?: (data: any) => void;
 
-    constructor(sock: WASocket, targetJid: string, debugMode: boolean = false) {
+    constructor(sock: WASocket, targetJid: string, debugMode: boolean = false, probeInterval: number = 5000) {
         this.sock = sock;
         this.targetJid = targetJid;
         this.trackedJids.add(targetJid);
+        this.probeInterval = Math.max(1000, probeInterval);
         trackerLogger.setDebugMode(debugMode);
+    }
+
+    public setProbeInterval(intervalMs: number) {
+        this.probeInterval = Math.max(1000, intervalMs);
+    }
+
+    public getProbeInterval(): number {
+        return this.probeInterval;
     }
 
     public setProbeMethod(method: ProbeMethod) {
@@ -197,7 +207,8 @@ export class WhatsAppTracker {
             } catch (err) {
                 logger.error(err, 'Error sending probe');
             }
-            const delay = Math.floor(Math.random() * 100) + 2000;
+            const jitter = Math.floor(Math.random() * 200);
+            const delay = this.probeInterval + jitter;
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }

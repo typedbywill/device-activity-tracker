@@ -14,8 +14,9 @@ services:
       - SIGNAL_API_URL=${SIGNAL_API_URL:-http://localhost:8080}
       - NODE_ENV=${NODE_ENV:-production}
     volumes:
-      # Persist WhatsApp auth state
+      # Persist WhatsApp auth state and SQLite data
       - baileys_auth:/app/baileys_auth_info
+      - tracker_data:/app/data
     networks:
       - app-network
     restart: unless-stopped
@@ -40,7 +41,7 @@ services:
   signal-api:
     image: bbernhard/signal-cli-rest-api
     ports:
-      - "8080:8080"
+      - "${SIGNAL_PORT:-8085}:8080"
     environment:
       - MODE=json-rpc
     restart: unless-stopped
@@ -49,6 +50,8 @@ services:
 
 volumes:
   baileys_auth:
+    driver: local
+  tracker_data:
     driver: local
 
 networks:

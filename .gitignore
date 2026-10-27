@@ -79,3 +79,12 @@ jspm_packages/
 .cache
 .parcel-cache
 package-lock.json
+
+# SQLite database & data volume
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Proxy credentials
+proxy/.htpasswd

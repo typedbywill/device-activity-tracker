@@ -1,0 +1,69 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PORT=3001
+    environment:
+      - PORT=3001
+      - SIGNAL_API_URL=http://signal-api:8080
+      - NODE_ENV=production
+    volumes:
+      - baileys_auth:/app/baileys_auth_info
+      - tracker_data:/app/data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - PORT=3000
+        - REACT_APP_API_URL=
+    environment:
+      - PORT=3000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  signal-api:
+    image: bbernhard/signal-cli-rest-api
+    environment:
+      - MODE=json-rpc
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  proxy:
+    image: nginx:alpine
+    container_name: activity-tracker-proxy
+    restart: unless-stopped
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - client
+      - backend
+    networks:
+      app-network:
+      nexus_default:
+        aliases:
+          - activity-tracker-proxy
+          - activity-tracker
+
+volumes:
+  baileys_auth:
+    driver: local
+  tracker_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+  nexus_default:
+    external: true
